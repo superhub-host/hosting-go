@@ -1,0 +1,109 @@
+package superhub
+
+import (
+	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/guregu/null"
+)
+
+const CurrentUserReference = "@self"
+
+// User - пользователь, зарегистрированный на сайте хостинга. Поля отражают основные параметры, используемые в ЛК.
+type User struct {
+	// ID - идентификатор пользователя в системе.
+	// Не имеет ничего общего с идентификатором в панели Pterodactyl.
+	ID int64 `json:"id"`
+
+	// Email - адрес электронной почты, используемый пользователем для авторизации.
+	// Не может повторяться у разных пользователей.
+	Email string `json:"email"`
+
+	// Name - никнейм пользователя.
+	// Не может повторяться у разных пользователей.
+	Name string `json:"name"`
+
+	// Balance - текущий баланс пользователя в рублях.
+	Balance float64 `json:"balance"`
+
+	// Discord содержит информацию о привязанном аккаунте Discord.
+	// API возвращает это поле даже если привязанного аккаунта нет.
+	Discord LinkedDiscord `json:"discord"`
+
+	// VK содержит информацию о привязанном аккаунте ВК.
+	// API возвращает это поле даже если привязанного аккаунта нет.
+	VK LinkedVK `json:"vk"`
+
+	// Referral содержит информацию, связанную с реферальной системой.
+	// Включает как информацию о реферале текущего пользователя,
+	// так и о параметрах для реферальной системы самого пользователя.
+	Referral Referral `json:"referral"`
+
+	// HasMfaEnabled имеет значение true, если на аккаунте пользователя
+	// включена двухфакторная аутентификация.
+	HasMfaEnabled bool `json:"hasMfaEnabled"`
+
+	// HadTestServer имеет значение true, если пользователь когда-либо имел тестовый сервер.
+	// Соответственно, значение false отражает то, что в данный момент пользователь может
+	// заказать новый тестовый сервер.
+	HadTestServer bool `json:"hadTestServer"`
+
+	// CreatedAt - дата регистрации пользователя.
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt null.Time `json:"updatedAt"`
+}
+
+// LinkedDiscord содержит информацию о привязанном аккаунте пользователя в Discord.
+type LinkedDiscord struct {
+	ID                null.String `json:"id"`
+	AcquiredLinkBonus bool        `json:"linkBonus"`
+}
+
+// LinkedVK содержит информацию о привязанном аккаунте пользователя в ВК.
+type LinkedVK struct {
+	ID                    null.Int `json:"id"`
+	AcquiredLinkBonus     bool     `json:"linkBonus"`
+	AcquiredFeedbackBonus bool     `json:"feedbackBonus"`
+}
+
+// Referral содержит информацию, связанную с реферальной системой.
+// Включает как информацию о реферале текущего пользователя,
+// так и о параметрах для реферальной системы самого пользователя.
+type Referral struct {
+	AcquiredBonus bool     `json:"bonus"`
+	Code          string   `json:"code"`
+	UserID        null.Int `json:"userId"`
+}
+
+// HasLinkedDiscord возвращает true, если пользователь привязал аккаунт в Discord.
+func (u *User) HasLinkedDiscord() bool {
+	return u.Discord.ID.Valid
+}
+
+// HasLinkedVK возвращает true, если пользователь привязал аккаунт в ВК.
+func (u *User) HasLinkedVK() bool {
+	return u.VK.ID.Valid
+}
+
+// HasReferral возвращает true, если пользователь зарегистрировался по приглашению от другого пользователя.
+func (u *User) HasReferral() bool {
+	return u.Referral.UserID.Valid
+}
+
+func (c *Client) getUser(id string) (*User, error) {
+	return InvokeEndpoint[User](c, http.MethodGet, fmt.Sprintf("/users/%s", id), nil)
+}
+
+// GetUser получает пользователя по указанному числовому идентификатору.
+// Чтобы получить информацию о текущем пользователе, используйте GetCurrentUser.
+func (c *Client) GetUser(id int64) (*User, error) {
+	return c.getUser(strconv.FormatInt(id, 10))
+}
+
+// GetCurrentUser получает информацию о пользователе, которому принадлежат
+// учётные данные, с помощью которых производится авторизация.
+func (c *Client) GetCurrentUser() (*User, error) {
+	return c.getUser(CurrentUserReference)
+}
