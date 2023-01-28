@@ -92,6 +92,13 @@ func (u *User) HasReferral() bool {
 	return u.Referral.UserID.Valid
 }
 
+// GetOwnedServers получает список серверов, владельцем которых является данный пользователь.
+// Если передан параметр external = true, в структуре полученных серверов будет доступно поле ExternalServer, если для
+// конкретного сервера доступен внешний сервер.
+func (u *User) GetOwnedServers(client *Client, external bool) (*[]Server, error) {
+	return client.GetOwnedServers(u.ID, external)
+}
+
 func (c *Client) getUser(id string) (*User, error) {
 	return InvokeEndpoint[User](c, http.MethodGet, fmt.Sprintf("/users/%s", id), nil)
 }
@@ -106,4 +113,11 @@ func (c *Client) GetUser(id int64) (*User, error) {
 // учётные данные, с помощью которых производится авторизация.
 func (c *Client) GetCurrentUser() (*User, error) {
 	return c.getUser(CurrentUserReference)
+}
+
+// GetOwnedServers получает список серверов, владельцем которых является пользователь с заданным идентификатором ownerID.
+// Если передан параметр external = true, в структуре полученных серверов будет доступно поле ExternalServer, если для
+// конкретного сервера доступен внешний сервер.
+func (c *Client) GetOwnedServers(ownerID int64, external bool) (*[]Server, error) {
+	return InvokeEndpoint[[]Server](c, http.MethodGet, fmt.Sprintf("/users/%d/servers?external=%t", ownerID, external), nil)
 }

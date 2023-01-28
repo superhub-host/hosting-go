@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func InvokeEndpoint[T comparable](client *Client, method, path string, body io.Reader) (*T, error) {
+func InvokeEndpoint[T any](client *Client, method, path string, body io.Reader) (*T, error) {
 	url, err := client.GetEndpointURL(path)
 	if err != nil {
 		return nil, fmt.Errorf("making endpoint URL: %s", err)
@@ -22,7 +22,7 @@ func InvokeEndpoint[T comparable](client *Client, method, path string, body io.R
 	return ProcessRequest[T](client, request)
 }
 
-func ProcessRequest[T comparable](client *Client, request *http.Request) (*T, error) {
+func ProcessRequest[T any](client *Client, request *http.Request) (*T, error) {
 	client.Credentials.AuthorizeRequest(request)
 
 	response, err := client.GetHttpClient().Do(request)
@@ -50,7 +50,7 @@ func (e *ErrorResponse) Error() string {
 	return fmt.Sprintf("request error: %d (%s) on path %s: %s", e.Status, e.ErrorName, e.Path, e.Message)
 }
 
-func handleResponse[T comparable](response *http.Response) (*T, error) {
+func handleResponse[T any](response *http.Response) (*T, error) {
 	if response.StatusCode >= http.StatusBadRequest && response.StatusCode < http.StatusInternalServerError {
 		errorResponse, err := handleErrorResponse(response)
 		if err != nil {
@@ -71,7 +71,7 @@ func handleErrorResponse(response *http.Response) (*ErrorResponse, error) {
 	return parseResponse[ErrorResponse](response)
 }
 
-func parseResponse[T comparable](response *http.Response) (*T, error) {
+func parseResponse[T any](response *http.Response) (*T, error) {
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, fmt.Errorf("reading response body: %s", err)
