@@ -97,6 +97,11 @@ func (s *Server) GetExternalServer(client *Client) (*ExternalServer, error) {
 	return client.GetExternalServer(s.ID)
 }
 
+// GetPricing получает актуальную информацию о стоимости сервера.
+func (s *Server) GetPricing(client *Client) (*ServicePricing, error) {
+	return client.GetServerPricing(s.ID)
+}
+
 // GetServers получает список всех серверов, доступных в системе.
 func (c *Client) GetServers() (*[]Server, error) {
 	return InvokeEndpoint[[]Server](c, http.MethodGet, "/servers", nil)
@@ -105,11 +110,6 @@ func (c *Client) GetServers() (*[]Server, error) {
 // GetServer получает информацию о сервере с данным идентификатором.
 func (c *Client) GetServer(id int64) (*Server, error) {
 	return InvokeEndpoint[Server](c, http.MethodGet, fmt.Sprintf("/servers/%d", id), nil)
-}
-
-// GetExternalServer получает данные о внешнем сервере, соответствующем внутреннему с заданным идентификатором internalID.
-func (c *Client) GetExternalServer(internalID int64) (*ExternalServer, error) {
-	return InvokeEndpoint[ExternalServer](c, http.MethodGet, fmt.Sprintf("/servers/%d/external", internalID), nil)
 }
 
 // ExternalServer - информация о сервере во внешней системе. Сейчас берётся только из панели Pterodactyl.
@@ -162,4 +162,33 @@ type FeatureLimits struct {
 
 	// Backups - количество резервных копий, которые может создать пользователь.
 	Backups int64 `json:"backups"`
+}
+
+// GetExternalServer получает данные о внешнем сервере, соответствующем внутреннему с заданным идентификатором internalID.
+func (c *Client) GetExternalServer(internalID int64) (*ExternalServer, error) {
+	return InvokeEndpoint[ExternalServer](c, http.MethodGet, fmt.Sprintf("/servers/%d/external", internalID), nil)
+}
+
+// PricingPolicyType - тип политики ценообразования. Показывает, какой механизм использует система для подсчёта
+// стоимости конкретной услуги, приобретённой пользователем.
+type PricingPolicyType string
+
+const (
+	// FixedPricingPolicy (фиксированная политика ценообразования).
+	// Стоимость услуги фиксируется при покупке и не зависит от каких-либо других параметров.
+	FixedPricingPolicy = "FIXED"
+)
+
+// ServicePricing - структура, содержащая информацию о текущей стоимости конкретной услуги.
+type ServicePricing struct {
+	// Текущая стоимость услуги в рублях.
+	ActualCost float64 `json:"actualCost"`
+
+	// Тип политики ценообразования, которая используется в данный момент для данной услуги.
+	PricingPolicyType PricingPolicyType `json:"pricingPolicyType"`
+}
+
+// GetServerPricing получает актуальную информацию о стоимости сервера.
+func (c *Client) GetServerPricing(serverID int64) (*ServicePricing, error) {
+	return InvokeEndpoint[ServicePricing](c, http.MethodGet, fmt.Sprintf("/servers/%d/pricing", serverID), nil)
 }
