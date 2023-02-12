@@ -57,24 +57,37 @@ type User struct {
 
 // LinkedDiscord содержит информацию о привязанном аккаунте пользователя в Discord.
 type LinkedDiscord struct {
-	ID                null.String `json:"id"`
-	AcquiredLinkBonus bool        `json:"linkBonus"`
+	// Идентификатор пользователя в Discord.
+	ID null.String `json:"id"`
+
+	// Имеет значение true, если пользователь получил бонус за привязку аккаунта.
+	AcquiredLinkBonus bool `json:"linkBonus"`
 }
 
 // LinkedVK содержит информацию о привязанном аккаунте пользователя в ВК.
 type LinkedVK struct {
-	ID                    null.Int `json:"id"`
-	AcquiredLinkBonus     bool     `json:"linkBonus"`
-	AcquiredFeedbackBonus bool     `json:"feedbackBonus"`
+	// Идентификатор пользователя в ВК.
+	ID null.Int `json:"id"`
+
+	// Имеет значение true, если пользователь получил бонус за привязку аккаунта.
+	AcquiredLinkBonus bool `json:"linkBonus"`
+
+	// Имеет значение true, если пользователь получил бонус за отзыв в обсуждении.
+	AcquiredFeedbackBonus bool `json:"feedbackBonus"`
 }
 
 // Referral содержит информацию, связанную с реферальной системой.
 // Включает как информацию о реферале текущего пользователя,
 // так и о параметрах для реферальной системы самого пользователя.
 type Referral struct {
-	AcquiredBonus bool     `json:"bonus"`
-	Code          string   `json:"code"`
-	UserID        null.Int `json:"userId"`
+	// Имеет значение true, если пользователь получил бонус за первое пополнение баланса.
+	AcquiredBonus bool `json:"bonus"`
+
+	// Реферальный код пользователя.
+	Code string `json:"code"`
+
+	// Идентификатор реферала - владельца реферального кода, который текущий пользователь использовал при регистрации.
+	UserID null.Int `json:"userId"`
 }
 
 // HasLinkedDiscord возвращает true, если пользователь привязал аккаунт в Discord.
@@ -109,8 +122,7 @@ func (c *Client) GetUser(id int64) (*User, error) {
 	return c.getUser(strconv.FormatInt(id, 10))
 }
 
-// GetCurrentUser получает информацию о пользователе, которому принадлежат
-// учётные данные, с помощью которых производится авторизация.
+// GetCurrentUser получает информацию о владельце учётных данных, с помощью которых производится авторизация.
 func (c *Client) GetCurrentUser() (*User, error) {
 	return c.getUser(CurrentUserReference)
 }
