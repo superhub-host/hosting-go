@@ -22,6 +22,11 @@ func InvokeEndpoint[T any](client *Client, method, path string, body io.Reader) 
 	return ProcessRequest[T](client, request)
 }
 
+func InvokeVoidEndpoint(client *Client, method, path string, body io.Reader) error {
+	_, err := InvokeEndpoint[struct{}](client, method, path, body)
+	return err
+}
+
 func ProcessRequest[T any](client *Client, request *http.Request) (*T, error) {
 	client.Credentials.AuthorizeRequest(request)
 
@@ -77,15 +82,27 @@ func parseResponse[T any](response *http.Response) (*T, error) {
 		return nil, fmt.Errorf("reading response body: %s", err)
 	}
 
-	if contentType := response.Header.Get("Content-Type"); contentType != "application/json" {
+	contentType := getContentType(response)
+	switch contentType {
+	case "application/json":
+		return parseResponseJSON[T](body)
+	case "":
+		return nil, nil
+	default:
 		return nil, fmt.Errorf("unsupported content type: %s", contentType)
 	}
+}
 
+func parseResponseJSON[T any](body []byte) (*T, error) {
 	var data T
-	err = json.Unmarshal(body, &data)
+	err := json.Unmarshal(body, &data)
 	if err != nil {
 		return nil, fmt.Errorf("parsing response body: %s", err)
 	}
 
 	return &data, nil
+}
+
+func getContentType(response *http.Response) string {
+	return response.Header.Get("Content-Type")
 }

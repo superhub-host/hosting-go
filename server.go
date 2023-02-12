@@ -101,6 +101,17 @@ func (s *Server) GetPricing(client *Client) (*ServicePricing, error) {
 	return client.GetServerPricing(s.ID)
 }
 
+// Block блокирует сервер. Если сервер заморожен пользователем, заморозка снимается, и только после этого сервер
+// блокируется. Вернёт ошибку 409, если сервер уже заблокирован.
+func (s *Server) Block(client *Client) error {
+	return client.BlockServer(s.ID)
+}
+
+// Unblock разблокирует сервер. Вернёт ошибку 409, если сервер не заблокирован.
+func (s *Server) Unblock(client *Client) error {
+	return client.UnblockServer(s.ID)
+}
+
 // GetServers получает список всех серверов, доступных в системе.
 func (c *Client) GetServers() (*[]Server, error) {
 	return InvokeEndpoint[[]Server](c, http.MethodGet, "/servers", nil)
@@ -109,6 +120,17 @@ func (c *Client) GetServers() (*[]Server, error) {
 // GetServer получает информацию о сервере с данным идентификатором.
 func (c *Client) GetServer(id int64) (*Server, error) {
 	return InvokeEndpoint[Server](c, http.MethodGet, fmt.Sprintf("/servers/%d", id), nil)
+}
+
+// BlockServer блокирует сервер с заданным идентификатором. Если сервер заморожен пользователем, заморозка снимается,
+// и только после этого сервер блокируется. Вернёт ошибку 409, если сервер уже заблокирован.
+func (c *Client) BlockServer(id int64) error {
+	return InvokeVoidEndpoint(c, http.MethodPost, fmt.Sprintf("/servers/%d/blocking", id), nil)
+}
+
+// UnblockServer разблокирует сервер с заданным идентификатором. Вернёт ошибку 409, если сервер не заблокирован.
+func (c *Client) UnblockServer(id int64) error {
+	return InvokeVoidEndpoint(c, http.MethodDelete, fmt.Sprintf("/servers/%d/blocking", id), nil)
 }
 
 // ExternalServer - информация о сервере во внешней системе. Сейчас берётся только из панели Pterodactyl.
