@@ -89,7 +89,7 @@ func parseResponse[T any](response *http.Response) (*T, error) {
 	case "":
 		return nil, nil
 	default:
-		return nil, fmt.Errorf("unsupported content type: %s", contentType)
+		return nil, fmt.Errorf("unsupported content type: %q", contentType)
 	}
 }
 
