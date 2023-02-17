@@ -112,6 +112,16 @@ func (u *User) GetOwnedServers(client *Client, external bool) (*[]Server, error)
 	return client.GetOwnedServers(u.ID, external)
 }
 
+// GetPayments получает список платежей, связанных с данным пользователем.
+func (u *User) GetPayments(client *Client) (*[]Payment, error) {
+	return client.GetUserPayments(u.ID)
+}
+
+// CreatePayment создаёт платёж для данного пользователя.
+func (u *User) CreatePayment(client *Client, form PaymentCreationForm) (*Payment, error) {
+	return client.CreatePayment(u.ID, form)
+}
+
 func (c *Client) getUser(id string) (*User, error) {
 	return InvokeEndpoint[User](c, http.MethodGet, fmt.Sprintf("/users/%s", id), nil)
 }

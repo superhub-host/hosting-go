@@ -1,6 +1,7 @@
 package superhub
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,23 +9,48 @@ import (
 	"time"
 )
 
-func InvokeEndpoint[T any](client *Client, method, path string, body io.Reader) (*T, error) {
+func InvokeEndpoint[T any](client *Client, method, path string, body any) (*T, error) {
 	url, err := client.GetEndpointURL(path)
 	if err != nil {
 		return nil, fmt.Errorf("making endpoint URL: %s", err)
 	}
 
-	request, err := http.NewRequest(method, url, body)
+	var bodyReader io.Reader
+	if body != nil {
+		bodyReader, err = marshalRequestBody(body)
+
+		if err != nil {
+			return nil, fmt.Errorf("making request body reader: %s", err)
+		}
+	}
+
+	request, err := http.NewRequest(method, url, bodyReader)
 	if err != nil {
 		return nil, fmt.Errorf("creating HTTP request: %s", err)
+	}
+
+	if bodyReader != nil {
+		request.Header.Set("Content-Type", "application/json")
 	}
 
 	return ProcessRequest[T](client, request)
 }
 
-func InvokeVoidEndpoint(client *Client, method, path string, body io.Reader) error {
+func InvokeVoidEndpoint(client *Client, method, path string, body any) error {
 	_, err := InvokeEndpoint[struct{}](client, method, path, body)
 	return err
+}
+
+func marshalRequestBody(data any) (io.Reader, error) {
+	buffer := &bytes.Buffer{}
+	encoder := json.NewEncoder(buffer)
+
+	err := encoder.Encode(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return buffer, nil
 }
 
 func ProcessRequest[T any](client *Client, request *http.Request) (*T, error) {
