@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/guregu/null"
+	"gopkg.in/guregu/null.v4"
 )
 
 const CurrentUserReference = "@self"

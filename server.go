@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/guregu/null"
+	"gopkg.in/guregu/null.v4"
 )
 
 // ServerState - состояние сервера. Значение отражает то, готов ли сервер к работе после установки. При этом, значение

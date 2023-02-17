@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/guregu/null"
+	"gopkg.in/guregu/null.v4"
 )
 
 // PaymentAmount - размер платежа. Описывает сумму и валюту, в которой проводится платёж.
