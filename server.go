@@ -166,14 +166,14 @@ type ExternalServer struct {
 
 // Resources содержит информацию об основных ресурсах сервера - ЦПУ, ОЗУ, диске.
 type Resources struct {
-	// CPU - процент нагрузки на ЦПУ. 100% = 1 ядро.
-	CPU int64 `json:"cpu"`
+	// CPU - количество ядер ЦПУ.
+	CPU float64 `json:"cpu"`
 
-	// Memory - оперативная память в МБ.
-	Memory int64 `json:"memory"`
+	// Memory - оперативная память в ГБ.
+	Memory float64 `json:"memory"`
 
-	// Disk - размер дискового пространства в МБ.
-	Disk int64 `json:"disk"`
+	// Disk - размер дискового пространства в ГБ.
+	Disk float64 `json:"disk"`
 }
 
 // FeatureLimits содержит информацию о доступных дополнительных возможностях сервера.
