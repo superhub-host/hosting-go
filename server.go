@@ -10,17 +10,17 @@ import (
 
 // ServerState - состояние сервера. Значение отражает то, готов ли сервер к работе после установки. При этом, значение
 // не зависит от того, доступен ли сервер в данный момент, если установка уже прошла.
-type ServerState int
+type ServerState string
 
 const (
 	// ServerStateError используется, когда системе не удалось полностью создать сервер.
-	ServerStateError = "ERROR"
+	ServerStateError ServerState = "ERROR"
 
 	// ServerStateInstalling - стандартное значение состояния, которое означает, что сервер находится в процессе создания.
-	ServerStateInstalling = "INSTALLING"
+	ServerStateInstalling ServerState = "INSTALLING"
 
 	// ServerStateReady используется, когда сервер готов к работе.
-	ServerStateReady = "READY"
+	ServerStateReady ServerState = "READY"
 )
 
 // Server - сервер, принадлежащий определённому пользователю. Содержит только общую информацию, используемую в ЛК,
