@@ -7,7 +7,7 @@ import (
 	"path"
 )
 
-const DefaultBaseURL = "https://api.superhub.host/v1"
+const DefaultBaseURL = "https://api.superhub.host/v2"
 
 type Client struct {
 	Credentials Credentials

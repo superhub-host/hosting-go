@@ -13,15 +13,14 @@ import (
 type ServerState int
 
 const (
-	// ServerStateFailed используется, когда системе не удалось полностью создать сервер.
-	ServerStateFailed = -1
+	// ServerStateError используется, когда системе не удалось полностью создать сервер.
+	ServerStateError = "ERROR"
 
-	// ServerStateUnknown - стандартное значение состояния, которое означает, что сервер находится в процессе создания,
-	// либо состояние сервера неизвестно.
-	ServerStateUnknown = 0
+	// ServerStateInstalling - стандартное значение состояния, которое означает, что сервер находится в процессе создания.
+	ServerStateInstalling = "INSTALLING"
 
-	// ServerStateNormal используется, когда сервер готов к работе.
-	ServerStateNormal = 1
+	// ServerStateReady используется, когда сервер готов к работе.
+	ServerStateReady = "READY"
 )
 
 // Server - сервер, принадлежащий определённому пользователю. Содержит только общую информацию, используемую в ЛК,
@@ -32,34 +31,20 @@ type Server struct {
 	// Не имеет ничего общего с идентификатором в панели Pterodactyl.
 	ID int64 `json:"id"`
 
-	// Идентификатор соответствующего сервера в панели Pterodactyl.
-	PteroID int64 `json:"pteroId"`
-
 	// Идентификатор пользователя, являющегося владельцем данного сервера.
 	OwnerID int64 `json:"ownerId"`
 
 	// Текущее состояние сервера (см. ServerState)
 	State ServerState `json:"state"`
 
-	// Базовая стоимость сервера в рублях с учётом скидки.
-	Cost float64 `json:"cost"`
+	// Стоимость сервера в рублях.
+	Cost ServerCost `json:"cost"`
 
-	// Размер скидки, принимает значения от 0 до 1, где 0 - отсутствие скидки, а 1 - скидка 100%.
-	Sale float64 `json:"sale"`
+	// Параметры, связанные с биллингом сервера.
+	Billing ServerBillingConfig `json:"billing"`
 
-	// Стоимость сервера при заморозке. Имеет значение только если сервер заморожен.
-	FreezeCost null.Float `json:"freezeCost"`
-
-	// Идентификатор тарифа, который используется на сервере в данный момент. Имеет значение только если пользователь
-	// выбрал готовый тариф, а не свою конфигурацию.
-	TariffID null.String `json:"tariffId"`
-
-	// Домен сервера. Может иметь в качестве значения также и IP адрес сервера с портом, если домен не настроен.
-	Domain string `json:"domain"`
-
-	// Содержимое CNAME записи для TCPShield. Имеет значение только если пользователь настроил домен от хостинга
-	// и включил поддержку TCPShield.
-	TCPShieldRecord null.String `json:"tcpshieldRecord"`
+	// Параметры, связанные с доменом сервера.
+	Domain ServerDomainConfig `json:"domain"`
 
 	// ExternalServer - структура, содержащая информацию о внешнем сервере. Имеет значение nil, если конкретная
 	// конечная точка, от которой была получена информация о сервере, не подразумевает получение информации о
@@ -81,9 +66,95 @@ type Server struct {
 	UpdatedAt time.Time `json:"updatedAt"`
 }
 
+// ServerCost показывает текущую стоимость сервера. Включает в себя базовую стоимость и стоимость заморозки.
+type ServerCost struct {
+	// Базовая стоимость сервера.
+	Base float64 `json:"base"`
+
+	// Стоимость заморозки сервера.
+	Freeze null.Float `json:"freeze"`
+}
+
+// ServerTariffMode - тарифный режим сервера. Отражает одновременно период списаний и способ тарификации.
+type ServerTariffMode string
+
+const (
+	// TariffModeDailyResources - режим, при котором пользователь выбирает произвольную конфигурацию сервера на своё
+	// усмотрение, а списание производится ежедневно.
+	TariffModeDailyResources ServerTariffMode = "DAILY_RESOURCES"
+
+	// TariffModeMonthlyTariff - режим, при котором пользователь выбирает готовый тариф, а списание производится
+	// ежемесячно.
+	TariffModeMonthlyTariff ServerTariffMode = "MONTHLY_TARIFF"
+)
+
+// TariffModeBase - основа тарифного режима. Отражает способ тарификации услуги.
+type TariffModeBase string
+
+const (
+	// TariffModeBaseTariff используется на серверах, где пользователь выбирает тариф из заранее заготовленного списка.
+	TariffModeBaseTariff = "TARIFF"
+
+	// TariffModeBaseResourceLimits используется на серверах, где пользователь выбирает произвольную конфигурацию.
+	TariffModeBaseResourceLimits = "RESOURCE_LIMITS"
+)
+
+// BillingPeriod - период выставления счетов на оплату сервера.
+type BillingPeriod string
+
+const (
+	// BillingPeriodOnce - единоразовая оплата.
+	BillingPeriodOnce = "ONCE"
+
+	// BillingPeriodDaily - ежедневная оплата.
+	BillingPeriodDaily = "DAILY"
+
+	// BillingPeriodMonthly - ежемесячная оплата.
+	BillingPeriodMonthly = "MONTHLY"
+)
+
+// PricingPolicyType - тип политики ценообразования. Показывает, какой механизм использует система для подсчёта
+// стоимости конкретной услуги, приобретённой пользователем.
+type PricingPolicyType string
+
+const (
+	// FixedPricingPolicy (фиксированная политика ценообразования).
+	// Стоимость услуги фиксируется при покупке и не зависит от каких-либо других параметров.
+	FixedPricingPolicy = "FIXED"
+)
+
+// ServerBillingConfig - параметры, связанные с выставлением счетов владельцу сервера.
+type ServerBillingConfig struct {
+	// Ценовая политика, используемая на сервере.
+	PricingPolicy PricingPolicyType `json:"pricingPolicy"`
+
+	// Текущий тарифный режим сервера.
+	TariffMode ServerTariffMode `json:"tariffMode"`
+
+	// Идентификатор тарифа, который используется на сервере в данный момент. Имеет значение только если пользователь
+	// выбрал готовый тариф, а не свою конфигурацию.
+	TariffID null.String `json:"tariffId"`
+
+	// Основание текущего тарифного режима сервера.
+	Base TariffModeBase `json:"base"`
+
+	// Период выставления счетов владельцу сервера.
+	Period BillingPeriod `json:"period"`
+}
+
+// ServerDomainConfig содержит информацию о домене, связанном с сервером.
+type ServerDomainConfig struct {
+	// Домен сервера. Может иметь в качестве значения также и IP адрес сервера с портом, если домен не настроен.
+	Summary string `json:"summary"`
+
+	// Содержимое CNAME записи для TCPShield. Имеет значение только, если пользователь настроил домен от хостинга
+	// и включил поддержку TCPShield.
+	TcpShieldRecord string `json:"TCPShieldRecord"`
+}
+
 // IsFrozenByUser возвращает true, если в данный момент сервер заморожен пользователем.
 func (s *Server) IsFrozenByUser() bool {
-	return s.FrozenAt.Valid && s.FreezeCost.Valid
+	return s.FrozenAt.Valid && s.Cost.Freeze.Valid
 }
 
 // IsTemporary возвращает true, если срок действия данного сервера ограничен.
@@ -189,16 +260,6 @@ type FeatureLimits struct {
 func (c *Client) GetExternalServer(internalID int64) (*ExternalServer, error) {
 	return InvokeEndpoint[ExternalServer](c, http.MethodGet, fmt.Sprintf("/servers/%d/external", internalID), nil)
 }
-
-// PricingPolicyType - тип политики ценообразования. Показывает, какой механизм использует система для подсчёта
-// стоимости конкретной услуги, приобретённой пользователем.
-type PricingPolicyType string
-
-const (
-	// FixedPricingPolicy (фиксированная политика ценообразования).
-	// Стоимость услуги фиксируется при покупке и не зависит от каких-либо других параметров.
-	FixedPricingPolicy = "FIXED"
-)
 
 // ServicePricing - структура, содержащая информацию о текущей стоимости конкретной услуги.
 type ServicePricing struct {

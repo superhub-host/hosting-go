@@ -2,6 +2,8 @@ package superhub
 
 import (
 	"fmt"
+
+	"gopkg.in/guregu/null.v4"
 	"net/http"
 )
 
@@ -24,6 +26,15 @@ type Node struct {
 	// Имя хоста, которое разрешается на IP адрес ноды через DNS.
 	Hostname string `json:"hostname"`
 
+	// Множитель стоимости сервера на этой ноде.
+	Multiplier float64 `json:"multiplier"`
+
+	// Название набора цен, используемого для серверов на этой ноде.
+	PriceSetName string `json:"priceSetName"`
+
+	// Название линейки тарифов, используемой для серверов на этой ноде.
+	TariffSetName string `json:"tariffSetName"`
+
 	// Компоненты ноды - информация об установленных комплектующих.
 	// На текущий момент предоставляется только информация о модели процессора (NodeComponentCPU).
 	Components map[NodeComponent]string `json:"components"`
@@ -38,14 +49,14 @@ type Node struct {
 	// Информация о физическом расположении ноды.
 	Location NodeLocation `json:"location"`
 
-	// Параметры, используемые при вычислении стоимости сервера, приобретаемого на данной ноде.
-	Prices NodePrices `json:"prices"`
+	// Внешний адрес, по которому доступна нода.
+	PublicAddress AddressPair `json:"publicAddress"`
 
 	// Скрыта ли нода от пользователей? Если true, то нода не будет отображена при покупке сервера.
 	Hidden bool `json:"hidden"`
 }
 
-// NodeLocation Информация о физическом расположении ноды.
+// NodeLocation - информация о физическом расположении ноды.
 type NodeLocation struct {
 	// Страна, в которой располагается дата-центр.
 	Country string `json:"country"`
@@ -57,31 +68,10 @@ type NodeLocation struct {
 	Code string `json:"code"`
 }
 
-// NodePrices содержит параметры, используемые при вычислении стоимости сервера, покупаемого на данной локации.
-type NodePrices struct {
-	// Стоимость 1 ядра ЦПУ за день.
-	CPU float64 `json:"cpu"`
-
-	// Стоимость 1 ГБ ОЗУ за день.
-	Memory float64 `json:"memory"`
-
-	// Стоимость 1 ГБ места на диске сверх бесплатного лимита за день.
-	Disk float64 `json:"disk"`
-
-	// Стоимость дополнительных резервных копий за 1 ГБ за день.
-	Backups float64 `json:"backups"`
-
-	// Количество бесплатного места на диске в ГБ.
-	FreeDisk float64 `json:"freeDisk"`
-
-	// Стоимость увеличения количества баз данных за день.
-	Databases float64 `json:"databases"`
-
-	// Множитель итоговой стоимости.
-	Multiplier float64 `json:"multiplier"`
-
-	// Размер бонуса за "переезд" - от 0 до 1 - процент скидки.
-	MigrationBonus float64 `json:"migrationBonus"`
+// AddressPair содержит IPv4 и IPv6 адреса, указывающие на один узел.
+type AddressPair struct {
+	V4 null.String `json:"v4"`
+	V6 null.String `json:"v6"`
 }
 
 // NodeLoad является обёрткой для значения нагрузки ноды.

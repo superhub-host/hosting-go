@@ -25,8 +25,8 @@ type User struct {
 	// Не может повторяться у разных пользователей.
 	Name string `json:"name"`
 
-	// Текущий баланс пользователя в рублях.
-	Balance float64 `json:"balance"`
+	// Текущий баланс пользователя.
+	Balance PaymentAmount `json:"balance"`
 
 	// Discord содержит информацию о привязанном аккаунте Discord.
 	// API возвращает это поле даже если привязанного аккаунта нет.
