@@ -33,13 +33,18 @@ func (c *Client) GetBaseURL() string {
 	return baseURL
 }
 
-func (c *Client) GetEndpointURL(endpoint string) (string, error) {
+func (c *Client) GetEndpointURL(endpoint string, query *url.Values) (string, error) {
 	parsedURL, err := url.Parse(c.GetBaseURL())
 	if err != nil {
 		return "", fmt.Errorf("parsing url: %s", err)
 	}
 
 	parsedURL.Path = path.Join(parsedURL.Path, endpoint)
+
+	if query != nil {
+		parsedURL.RawQuery = query.Encode()
+	}
+
 	return parsedURL.String(), nil
 }
 

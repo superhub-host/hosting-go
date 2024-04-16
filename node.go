@@ -104,30 +104,30 @@ func (n *Node) UpdateLoad(client *Client, load *NodeLoad) (*NodeLoad, error) {
 
 // GetNode получает информацию о ноде с заданным идентификатором.
 func (c *Client) GetNode(id int64) (*Node, error) {
-	return InvokeEndpoint[Node](c, http.MethodGet, fmt.Sprintf("/nodes/%d", id), nil)
+	return InvokeEndpoint[Node](c, http.MethodGet, fmt.Sprintf("/nodes/%d", id), nil, nil)
 }
 
 // GetNodes получает список всех доступных нод.
 func (c *Client) GetNodes() (*[]Node, error) {
-	return InvokeEndpoint[[]Node](c, http.MethodGet, "/nodes", nil)
+	return InvokeEndpoint[[]Node](c, http.MethodGet, "/nodes", nil, nil)
 }
 
 // GetNodeLimits получает лимиты по ресурсам, доступным пользователям при покупке сервера на данной ноде.
 func (c *Client) GetNodeLimits(id int64) (*Resources, error) {
-	return InvokeEndpoint[Resources](c, http.MethodGet, fmt.Sprintf("/nodes/%d/limits", id), nil)
+	return InvokeEndpoint[Resources](c, http.MethodGet, fmt.Sprintf("/nodes/%d/limits", id), nil, nil)
 }
 
 // UpdateNodeLimits изменяет лимиты по ресурсам, доступным пользователям при покупке сервера на данной ноде.
 func (c *Client) UpdateNodeLimits(id int64, limits *Resources) (*Resources, error) {
-	return InvokeEndpoint[Resources](c, http.MethodPut, fmt.Sprintf("/nodes/%d/limits", id), limits)
+	return InvokeEndpoint[Resources](c, http.MethodPut, fmt.Sprintf("/nodes/%d/limits", id), nil, limits)
 }
 
 // GetNodeLoad получает текущую нагрузку на ноду.
 func (c *Client) GetNodeLoad(id int64) (*NodeLoad, error) {
-	return InvokeEndpoint[NodeLoad](c, http.MethodGet, fmt.Sprintf("/nodes/%d/load", id), nil)
+	return InvokeEndpoint[NodeLoad](c, http.MethodGet, fmt.Sprintf("/nodes/%d/load", id), nil, nil)
 }
 
 // UpdateNodeLoad обновляет информацию о загруженности ноды.
 func (c *Client) UpdateNodeLoad(id int64, load *NodeLoad) (*NodeLoad, error) {
-	return InvokeEndpoint[NodeLoad](c, http.MethodPut, fmt.Sprintf("/nodes/%d/load", id), load)
+	return InvokeEndpoint[NodeLoad](c, http.MethodPut, fmt.Sprintf("/nodes/%d/load", id), nil, load)
 }

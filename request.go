@@ -6,11 +6,79 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 )
 
-func InvokeEndpoint[T any](client *Client, method, path string, body any) (*T, error) {
-	url, err := client.GetEndpointURL(path)
+type QueryParams interface {
+	Encode(values *url.Values)
+}
+
+type SearchParams struct {
+	Query string
+}
+
+func (s *SearchParams) Encode(v *url.Values) {
+	if s.Query != "" {
+		v.Set("query", s.Query)
+	}
+}
+
+type SortDirection string
+
+const (
+	SortAscending  SortDirection = "ASC"
+	SortDescending SortDirection = "DESC"
+)
+
+type SortParams struct {
+	Field     string
+	Direction SortDirection
+}
+
+func (s *SortParams) Encode(v *url.Values) {
+	if s.Field != "" {
+		v.Set("sortBy", s.Field)
+	}
+
+	if s.Direction != "" {
+		v.Set("sortDirection", string(s.Direction))
+	}
+}
+
+type SearchSortParams struct {
+	SortParams
+	SearchParams
+}
+
+func (s *SearchSortParams) Encode(v *url.Values) {
+	s.SortParams.Encode(v)
+	s.SearchParams.Encode(v)
+}
+
+type PaginationParams struct {
+	Page int64
+}
+
+func (p *PaginationParams) Encode(v *url.Values) {
+	v.Set("page", strconv.FormatInt(p.Page, 10))
+}
+
+type PaginationSearchSortParams struct {
+	SearchParams
+	SortParams
+	PaginationParams
+}
+
+func (s *PaginationSearchSortParams) Encode(v *url.Values) {
+	s.SortParams.Encode(v)
+	s.SearchParams.Encode(v)
+	s.PaginationParams.Encode(v)
+}
+
+func InvokeEndpoint[T any](client *Client, method, path string, query *url.Values, body any) (*T, error) {
+	u, err := client.GetEndpointURL(path, query)
 	if err != nil {
 		return nil, fmt.Errorf("making endpoint URL: %s", err)
 	}
@@ -24,7 +92,7 @@ func InvokeEndpoint[T any](client *Client, method, path string, body any) (*T, e
 		}
 	}
 
-	request, err := http.NewRequest(method, url, bodyReader)
+	request, err := http.NewRequest(method, u, bodyReader)
 	if err != nil {
 		return nil, fmt.Errorf("creating HTTP request: %s", err)
 	}
@@ -36,8 +104,8 @@ func InvokeEndpoint[T any](client *Client, method, path string, body any) (*T, e
 	return ProcessRequest[T](client, request)
 }
 
-func InvokeVoidEndpoint(client *Client, method, path string, body any) error {
-	_, err := InvokeEndpoint[struct{}](client, method, path, body)
+func InvokeVoidEndpoint(client *Client, method, path string, query *url.Values, body any) error {
+	_, err := InvokeEndpoint[struct{}](client, method, path, query, body)
 	return err
 }
 

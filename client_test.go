@@ -44,7 +44,7 @@ func TestClient_GetEndpointURL(t *testing.T) {
 			currentlyExpected := expected[i-i%2+j/4]
 
 			client := &Client{BaseURL: currentBaseURL}
-			endpointURL, err := client.GetEndpointURL(currentEndpoint)
+			endpointURL, err := client.GetEndpointURL(currentEndpoint, nil)
 			if err != nil {
 				t.Error(err)
 				return

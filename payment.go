@@ -3,6 +3,7 @@ package superhub
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"gopkg.in/guregu/null.v4"
@@ -99,13 +100,19 @@ type Payment struct {
 }
 
 // GetPayments получает список всех платежей в системе.
-func (c *Client) GetPayments() (*[]Payment, error) {
-	return InvokeEndpoint[[]Payment](c, http.MethodGet, "/payments", nil)
+func (c *Client) GetPayments(params *PaginationParams) (*[]Payment, error) {
+	query := &url.Values{}
+	params.Encode(query)
+
+	return InvokeEndpoint[[]Payment](c, http.MethodGet, "/payments", query, nil)
 }
 
 // GetUserPayments получает список платежей пользователя.
-func (c *Client) GetUserPayments(userID int64) (*[]Payment, error) {
-	return InvokeEndpoint[[]Payment](c, http.MethodGet, fmt.Sprintf("/users/%d/payments", userID), nil)
+func (c *Client) GetUserPayments(userID int64, params *PaginationParams) (*[]Payment, error) {
+	query := &url.Values{}
+	params.Encode(query)
+
+	return InvokeEndpoint[[]Payment](c, http.MethodGet, fmt.Sprintf("/users/%d/payments", userID), query, nil)
 }
 
 type PaymentCreationForm struct {
@@ -121,5 +128,5 @@ type PaymentCreationForm struct {
 
 // CreatePayment создаёт платёж для данного пользователя.
 func (c *Client) CreatePayment(userID int64, form PaymentCreationForm) (*Payment, error) {
-	return InvokeEndpoint[Payment](c, http.MethodPost, fmt.Sprintf("/users/%d/payments", userID), form)
+	return InvokeEndpoint[Payment](c, http.MethodPost, fmt.Sprintf("/users/%d/payments", userID), nil, form)
 }

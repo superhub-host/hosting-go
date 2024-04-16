@@ -185,23 +185,23 @@ func (s *Server) Unblock(client *Client) error {
 
 // GetServers получает список всех серверов, доступных в системе.
 func (c *Client) GetServers() (*[]Server, error) {
-	return InvokeEndpoint[[]Server](c, http.MethodGet, "/servers", nil)
+	return InvokeEndpoint[[]Server](c, http.MethodGet, "/servers", nil, nil)
 }
 
 // GetServer получает информацию о сервере с данным идентификатором.
 func (c *Client) GetServer(id int64) (*Server, error) {
-	return InvokeEndpoint[Server](c, http.MethodGet, fmt.Sprintf("/servers/%d", id), nil)
+	return InvokeEndpoint[Server](c, http.MethodGet, fmt.Sprintf("/servers/%d", id), nil, nil)
 }
 
 // BlockServer блокирует сервер с заданным идентификатором. Если сервер заморожен пользователем, заморозка снимается,
 // и только после этого сервер блокируется. Вернёт ошибку 409, если сервер уже заблокирован.
 func (c *Client) BlockServer(id int64) error {
-	return InvokeVoidEndpoint(c, http.MethodPost, fmt.Sprintf("/servers/%d/blocking", id), nil)
+	return InvokeVoidEndpoint(c, http.MethodPost, fmt.Sprintf("/servers/%d/blocking", id), nil, nil)
 }
 
 // UnblockServer разблокирует сервер с заданным идентификатором. Вернёт ошибку 409, если сервер не заблокирован.
 func (c *Client) UnblockServer(id int64) error {
-	return InvokeVoidEndpoint(c, http.MethodDelete, fmt.Sprintf("/servers/%d/blocking", id), nil)
+	return InvokeVoidEndpoint(c, http.MethodDelete, fmt.Sprintf("/servers/%d/blocking", id), nil, nil)
 }
 
 // ExternalServer - информация о сервере во внешней системе. Сейчас берётся только из панели Pterodactyl.
@@ -258,7 +258,7 @@ type FeatureLimits struct {
 
 // GetExternalServer получает данные о внешнем сервере, соответствующем внутреннему с заданным идентификатором internalID.
 func (c *Client) GetExternalServer(internalID int64) (*ExternalServer, error) {
-	return InvokeEndpoint[ExternalServer](c, http.MethodGet, fmt.Sprintf("/servers/%d/external", internalID), nil)
+	return InvokeEndpoint[ExternalServer](c, http.MethodGet, fmt.Sprintf("/servers/%d/external", internalID), nil, nil)
 }
 
 // ServicePricing - структура, содержащая информацию о текущей стоимости конкретной услуги.
@@ -272,5 +272,5 @@ type ServicePricing struct {
 
 // GetServerPricing получает актуальную информацию о стоимости сервера.
 func (c *Client) GetServerPricing(serverID int64) (*ServicePricing, error) {
-	return InvokeEndpoint[ServicePricing](c, http.MethodGet, fmt.Sprintf("/servers/%d/pricing", serverID), nil)
+	return InvokeEndpoint[ServicePricing](c, http.MethodGet, fmt.Sprintf("/servers/%d/pricing", serverID), nil, nil)
 }

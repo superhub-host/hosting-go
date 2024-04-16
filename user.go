@@ -3,6 +3,7 @@ package superhub
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -113,8 +114,8 @@ func (u *User) GetOwnedServers(client *Client, external bool) (*[]Server, error)
 }
 
 // GetPayments получает список платежей, связанных с данным пользователем.
-func (u *User) GetPayments(client *Client) (*[]Payment, error) {
-	return client.GetUserPayments(u.ID)
+func (u *User) GetPayments(client *Client, params *PaginationParams) (*[]Payment, error) {
+	return client.GetUserPayments(u.ID, params)
 }
 
 // CreatePayment создаёт платёж для данного пользователя.
@@ -123,13 +124,20 @@ func (u *User) CreatePayment(client *Client, form PaymentCreationForm) (*Payment
 }
 
 func (c *Client) getUser(id string) (*User, error) {
-	return InvokeEndpoint[User](c, http.MethodGet, fmt.Sprintf("/users/%s", id), nil)
+	return InvokeEndpoint[User](c, http.MethodGet, fmt.Sprintf("/users/%s", id), nil, nil)
 }
 
 // GetUser получает пользователя по указанному числовому идентификатору.
 // Чтобы получить информацию о текущем пользователе, используйте GetCurrentUser.
 func (c *Client) GetUser(id int64) (*User, error) {
 	return c.getUser(strconv.FormatInt(id, 10))
+}
+
+func (c *Client) GetUsers(params *PaginationSearchSortParams) (*[]User, error) {
+	query := &url.Values{}
+	params.Encode(query)
+
+	return InvokeEndpoint[[]User](c, http.MethodGet, fmt.Sprintf("/users"), query, nil)
 }
 
 // GetCurrentUser получает информацию о владельце учётных данных, с помощью которых производится авторизация.
@@ -141,5 +149,7 @@ func (c *Client) GetCurrentUser() (*User, error) {
 // Если передан параметр external = true, в структуре полученных серверов будет доступно поле ExternalServer, если для
 // конкретного сервера доступен внешний сервер.
 func (c *Client) GetOwnedServers(ownerID int64, external bool) (*[]Server, error) {
-	return InvokeEndpoint[[]Server](c, http.MethodGet, fmt.Sprintf("/users/%d/servers?external=%t", ownerID, external), nil)
+	return InvokeEndpoint[[]Server](c, http.MethodGet, fmt.Sprintf("/users/%d/servers", ownerID), &url.Values{
+		"external": []string{strconv.FormatBool(external)},
+	}, nil)
 }
