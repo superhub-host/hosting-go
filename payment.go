@@ -6,97 +6,92 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/google/uuid"
 	"gopkg.in/guregu/null.v4"
 )
 
-// PaymentAmount - размер платежа. Описывает сумму и валюту, в которой проводится платёж.
-type PaymentAmount struct {
+// Amount — размер платежа. Описывает сумму и валюту, в которой проводится платёж.
+type Amount struct {
 	// Сумма платежа в валюте, соответствующей значению Currency.
-	Sum float64 `json:"sum"`
+	Amount float64 `json:"sum"`
 
 	// Валюта платежа.
 	Currency string `json:"currency"`
 }
 
-// PaymentSourceType - тип "источника" платежа - действия, вызвавшего создание данного платежа.
+// PaymentSourceType — тип "источника" платежа — действия, вызвавшего создание данного платежа.
 type PaymentSourceType string
 
 const (
-	// PaymentSourceTopUp - пополнение баланса.
-	PaymentSourceTopUp PaymentSourceType = "TOP_UP"
+	// PaymentSourceDeposit — пополнение баланса.
+	PaymentSourceDeposit PaymentSourceType = "DEPOSIT"
 
-	// PaymentSourceServerService - списание за игровой сервер.
-	PaymentSourceServerService PaymentSourceType = "SERVER_SERVICE"
+	// PaymentSourceInstance — списание за услугу.
+	PaymentSourceInstance PaymentSourceType = "INSTANCE"
 
-	// PaymentSourceReferral - проценты от пополнений приглашённых пользователей.
+	// PaymentSourceReferral — проценты от пополнений приглашённых пользователей.
 	PaymentSourceReferral PaymentSourceType = "REFERRAL"
 
-	// PaymentSourceReferralWelcomeBonus - приветственный бонус для пользователей, зарегистрированных по приглашению.
+	// PaymentSourceDepositBonus — бонус за пополнение баланса.
+	PaymentSourceDepositBonus PaymentSourceType = "DEPOSIT_BONUS"
+
+	// PaymentSourceReferralWelcomeBonus — приветственный бонус для пользователей, зарегистрированных по приглашению.
 	PaymentSourceReferralWelcomeBonus PaymentSourceType = "REFERRAL_WELCOME_BONUS"
+
+	// PaymentSourceAccountLinkBonus — бонус за привязку аккаунта.
+	PaymentSourceAccountLinkBonus PaymentSourceType = "ACCOUNT_LINK_BONUS"
 
 	// PaymentSourceOther используется как стандартное значение для типа источника платежа.
 	PaymentSourceOther PaymentSourceType = "OTHER"
 )
 
-// PaymentSource - "источник" платежа. Описывает то, почему был создан данный платёж. Значения, связанные с источником
+// PaymentSource — «источник» платежа. Описывает то, почему был создан данный платёж. Значения, связанные с источником
 // платежа, могут быть использованы для фильтрации и группировки платежей.
 type PaymentSource struct {
 	// Тип источника (см. PaymentSourceType)
 	Type PaymentSourceType `json:"type,omitempty"`
 
 	// Идентификатор источника. Для некоторых типов всегда имеет пустое значение ("TOP_UP", "OTHER"),
-	// для других - всегда непустое. Например, для типа "REFERRAL" будет содержать значение пользователя, от которого
+	// для других — всегда непустое. Например, для типа "REFERRAL" будет содержать значение пользователя, от которого
 	// получен бонус по реферальной системе.
-	ID null.String `json:"id,omitempty"`
+	ID *uuid.UUID `json:"id,omitempty"`
 }
 
 // PaymentMode отражает режим, в котором система обрабатывает платёж.
 type PaymentMode string
 
 const (
-	// PaymentModeProduction - стандартный режим, при котором обработка платежа производится полностью.
+	// PaymentModeProduction — стандартный режим, при котором обработка платежа производится полностью.
 	PaymentModeProduction = "PRODUCTION"
 
-	// PaymentModeTest - тестовый режим, производится полная обработка платежа без изменения баланса пользователя.
+	// PaymentModeTest — тестовый режим, производится полная обработка платежа без изменения баланса пользователя.
 	PaymentModeTest = "TEST"
 )
 
-// Payment описывает платёж - сущность, используемую для хранения истории изменения баланса пользователя на хостинге.
+// Payment описывает платёж — сущность, используемую для хранения истории изменения баланса пользователя на хостинге.
 // Платежи могут иметь как положительную, так и отрицательную сумму. Платежи с положительной суммой отражают пополнения
 // баланса, будь то пополнение пользователем или администрацией хостинга. Платежи с отрицательной суммой отражают
 // списания средств с баланса пользователя, например, для оплаты услуг хостинга.
 type Payment struct {
 	// Идентификатор платежа. В текущей реализации представляет собой последовательность из 16 байт, представленную
-	// в шестнадцатеричном виде. При этом не гарантируется, что все идентификаторы будут в таком формате в будущем.
+	// в шестнадцатеричном виде. Не гарантируется, что все идентификаторы будут в таком формате в будущем.
 	ID string `json:"id"`
 
-	// Идентификатор пользователя, для которого был проведён платёж. Т.е. изменение баланса, описанное данным платежом,
-	// производилось с балансом пользователя, имеющего идентификатор, равный UserID.
-	UserID int64 `json:"userId"`
-
 	// Сумма платежа.
-	Amount PaymentAmount `json:"amount"`
+	Amount Amount `json:"amount"`
 
 	// Описание платежа. Может быть произвольной строкой или отсутствовать вообще.
-	Description null.String `json:"description"`
+	Description *string `json:"description"`
 
-	// "Источник" платежа - действие, которое вызвало создание данного платежа.
+	// «Источник» платежа — действие, которое вызвало создание данного платежа.
 	Source PaymentSource `json:"source"`
 
 	// Режим проведения платежа. В большинстве случаев имеет значение "PRODUCTION", т.е. платёж обрабатывается
 	// полностью. В зависимости от данного значения платёж в системе может обрабатываться по-разному.
 	Mode PaymentMode `json:"mode"`
 
-	// Завершён ли платёж? Значение false показывает, что изменение баланса, описываемое платежом, пока не было
-	// произведено. Например, при пополнении баланса создаётся платёж, у которого Completed = false, но после того,
-	// как пользователь производит оплату, сумма платежа зачисляется на баланс, а Completed изменяется на true.
-	Completed bool `json:"completed"`
-
 	// Дата создания платежа.
 	CreatedAt time.Time `json:"createdAt"`
-
-	// Дата последнего обновления информации о платеже.
-	UpdatedAt null.Time `json:"updatedAt"`
 }
 
 // GetPayments получает список всех платежей в системе.
@@ -108,11 +103,11 @@ func (c *Client) GetPayments(params *PaginationParams) (*[]Payment, error) {
 }
 
 // GetUserPayments получает список платежей пользователя.
-func (c *Client) GetUserPayments(userID int64, params *PaginationParams) (*[]Payment, error) {
+func (c *Client) GetUserPayments(userID uuid.UUID, params *PaginationParams) (*[]Payment, error) {
 	query := &url.Values{}
 	params.Encode(query)
 
-	return InvokeEndpoint[[]Payment](c, http.MethodGet, fmt.Sprintf("/users/%d/payments", userID), query, nil)
+	return InvokeEndpoint[[]Payment](c, http.MethodGet, fmt.Sprintf("/users/%s/payments", userID), query, nil)
 }
 
 type PaymentCreationForm struct {
@@ -127,6 +122,6 @@ type PaymentCreationForm struct {
 }
 
 // CreatePayment создаёт платёж для данного пользователя.
-func (c *Client) CreatePayment(userID int64, form PaymentCreationForm) (*Payment, error) {
-	return InvokeEndpoint[Payment](c, http.MethodPost, fmt.Sprintf("/users/%d/payments", userID), nil, form)
+func (c *Client) CreatePayment(userID uuid.UUID, form PaymentCreationForm) (*Payment, error) {
+	return InvokeEndpoint[Payment](c, http.MethodPost, fmt.Sprintf("/users/%s/payments", userID), nil, form)
 }
