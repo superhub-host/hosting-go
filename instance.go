@@ -129,7 +129,7 @@ func (i *Instance) GetPricing(client *Client) (*InstancePricing, error) {
 
 // Block блокирует услугу.
 func (i *Instance) Block(client *Client) error {
-	return client.BlockServer(i.ID)
+	return client.BlockInstance(i.ID)
 }
 
 // Unblock разблокирует услугу. Вернёт ошибку 409, если услуга не заблокирована.
@@ -137,18 +137,18 @@ func (i *Instance) Unblock(client *Client) error {
 	return client.UnblockInstance(i.ID)
 }
 
-// GetServers получает список всех услуг, доступных в системе.
-func (c *Client) GetServers() (*[]Instance, error) {
+// GetInstances получает список всех услуг, доступных в системе.
+func (c *Client) GetInstances() (*[]Instance, error) {
 	return InvokeEndpoint[[]Instance](c, http.MethodGet, "/instances", nil, nil)
 }
 
-// GetServer получает информацию об услуге с данным идентификатором.
-func (c *Client) GetServer(id uuid.UUID) (*Instance, error) {
+// GetInstance получает информацию об услуге с данным идентификатором.
+func (c *Client) GetInstance(id uuid.UUID) (*Instance, error) {
 	return InvokeEndpoint[Instance](c, http.MethodGet, fmt.Sprintf("/instances/%s", id), nil, nil)
 }
 
-// BlockServer блокирует услугу с заданным идентификатором.
-func (c *Client) BlockServer(id uuid.UUID) error {
+// BlockInstance блокирует услугу с заданным идентификатором.
+func (c *Client) BlockInstance(id uuid.UUID) error {
 	return InvokeVoidEndpoint(c, http.MethodPost, fmt.Sprintf("/instances/%s/blocking", id), nil, nil)
 }
 
