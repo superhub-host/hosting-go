@@ -111,8 +111,8 @@ func (c *Client) GetUserPayments(userID uuid.UUID, params *PaginationParams) (*[
 }
 
 type PaymentCreationForm struct {
-	// Сумма платежа в рублях.
-	Amount float64 `json:"amount"`
+	// Сумма платежа.
+	Amount Amount `json:"amount"`
 
 	// Описание платежа.
 	Description null.String `json:"description"`
