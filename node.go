@@ -45,7 +45,7 @@ type Node struct {
 	// Доступна ли нода для размещения серверов в принципе?
 	IsAvailable bool `json:"isAvailable"`
 
-	tariffGroupId uuid.UUID
+	serviceGroupId uuid.UUID
 }
 
 // NodeLocation — информация о физическом расположении ноды.
@@ -153,35 +153,35 @@ type NodeLoad struct {
 
 // UpdateLoad обновляет информацию о загруженности ноды.
 func (n *Node) UpdateLoad(client *Client, load *NodeLoad) (*NodeLoad, error) {
-	return client.UpdateNodeLoad(n.tariffGroupId, n.ID, load)
+	return client.UpdateNodeLoad(n.serviceGroupId, n.ID, load)
 }
 
 // GetNode получает информацию о ноде с заданным идентификатором.
-func (c *Client) GetNode(tariffGroupId uuid.UUID, nodeId uuid.UUID) (*Node, error) {
-	n, err := InvokeEndpoint[Node](c, http.MethodGet, fmt.Sprintf("/tariff-groups/%s/nodes/%s", tariffGroupId, nodeId), nil, nil)
+func (c *Client) GetNode(serviceGroupId uuid.UUID, nodeId uuid.UUID) (*Node, error) {
+	n, err := InvokeEndpoint[Node](c, http.MethodGet, fmt.Sprintf("/service-groups/%s/nodes/%s", serviceGroupId, nodeId), nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
-	n.tariffGroupId = tariffGroupId
+	n.serviceGroupId = serviceGroupId
 	return n, nil
 }
 
 // GetNodes получает список всех доступных нод.
-func (c *Client) GetNodes(tariffGroupId uuid.UUID) (*[]Node, error) {
-	nodes, err := InvokeEndpoint[[]Node](c, http.MethodGet, fmt.Sprintf("/tariff-groups/%s/nodes", tariffGroupId), nil, nil)
+func (c *Client) GetNodes(serviceGroupId uuid.UUID) (*[]Node, error) {
+	nodes, err := InvokeEndpoint[[]Node](c, http.MethodGet, fmt.Sprintf("/service-groups/%s/nodes", serviceGroupId), nil, nil)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, n := range *nodes {
-		n.tariffGroupId = tariffGroupId
+		n.serviceGroupId = serviceGroupId
 	}
 
 	return nodes, nil
 }
 
 // UpdateNodeLoad обновляет информацию о загруженности ноды.
-func (c *Client) UpdateNodeLoad(tariffGroupId uuid.UUID, nodeId uuid.UUID, load *NodeLoad) (*NodeLoad, error) {
-	return InvokeEndpoint[NodeLoad](c, http.MethodPut, fmt.Sprintf("/tariff-groups/%s/nodes/%s/load", tariffGroupId, nodeId), nil, load)
+func (c *Client) UpdateNodeLoad(serviceGroupId uuid.UUID, nodeId uuid.UUID, load *NodeLoad) (*NodeLoad, error) {
+	return InvokeEndpoint[NodeLoad](c, http.MethodPut, fmt.Sprintf("/service-groups/%s/nodes/%s/load", serviceGroupId, nodeId), nil, load)
 }
