@@ -13,7 +13,7 @@ import (
 // Amount — размер платежа. Описывает сумму и валюту, в которой проводится платёж.
 type Amount struct {
 	// Сумма платежа в валюте, соответствующей значению Currency.
-	Amount float64 `json:"sum"`
+	Amount float64 `json:"amount"`
 
 	// Валюта платежа.
 	Currency string `json:"currency"`
