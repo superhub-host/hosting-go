@@ -31,8 +31,8 @@ type OrderOption struct {
 	Description string    `json:"description"`
 	Price       Price     `json:"price"`
 	OptionKey   string    `json:"optionKey"`
-	MinQuantity int       `json:"minQuantity"`
-	MaxQuantity int       `json:"maxQuantity"`
+	MinQuantity float64   `json:"minQuantity"`
+	MaxQuantity float64   `json:"maxQuantity"`
 }
 
 type BillingPeriod struct {
