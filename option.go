@@ -106,3 +106,15 @@ type Measure struct {
 	Target MeasureTarget `json:"target"`
 	Unit   string        `json:"unit"`
 }
+
+type OptionContainer []OptionValue
+
+func (c OptionContainer) GetValue(key string) string {
+	for _, option := range c {
+		if option.Key == key {
+			return option.Value
+		}
+	}
+
+	return ""
+}

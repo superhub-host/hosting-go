@@ -20,18 +20,6 @@ const (
 	InstanceStatusUserSuspended InstanceStatus = "USER_SUSPENDED"
 )
 
-type InstanceKind struct {
-	ID          uuid.UUID `json:"id"`
-	DisplayName string    `json:"displayName"`
-	Description string    `json:"description"`
-}
-
-type ServiceGroup struct {
-	ID          uuid.UUID `json:"id"`
-	DisplayName string    `json:"displayName"`
-	Description string    `json:"description"`
-}
-
 // Instance — конкретный экземпляр предоставленной определённому пользователю услуги. Содержит общее описание услуги,
 // используемое в личном кабинете.
 type Instance struct {

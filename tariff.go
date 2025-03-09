@@ -1,6 +1,8 @@
 package superhub
 
 import (
+	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,7 +18,7 @@ type Tariff struct {
 	DisplayName       string            `json:"displayName"`
 	Description       string            `json:"description"`
 	Price             Price             `json:"price"`
-	Options           []OptionValue     `json:"options"`
+	Options           OptionContainer   `json:"options"`
 	MaxPerUser        *int              `json:"maxPerUser"`
 	VerificationLevel VerificationLevel `json:"verificationLevel"`
 	UserCanSuspend    bool              `json:"userCanSuspend"`
@@ -40,4 +42,30 @@ type BillingPeriod struct {
 	DisplayName   string    `json:"displayName"`
 	Description   string    `json:"description"`
 	PeriodSeconds *int      `json:"periodSeconds"`
+}
+
+type TariffSet struct {
+	ID            uuid.UUID         `json:"id"`
+	ServiceGroup  ServiceGroup      `json:"serviceGroup"`
+	PricingPolicy PricingPolicyType `json:"pricingPolicy"`
+	DisplayName   string            `json:"displayName"`
+	Description   string            `json:"description"`
+}
+
+type TariffGroup struct {
+	ID            uuid.UUID       `json:"id"`
+	InstanceKind  InstanceKind    `json:"instanceKind"`
+	TariffSet     TariffSet       `json:"tariffSet"`
+	BillingPeriod BillingPeriod   `json:"billingPeriod"`
+	DisplayName   string          `json:"displayName"`
+	Description   string          `json:"description"`
+	Options       OptionContainer `json:"options"`
+}
+
+func (c *Client) GetTariffGroups() (*[]TariffGroup, error) {
+	return InvokeEndpoint[[]TariffGroup](c, http.MethodGet, "/tariff-groups", nil, nil)
+}
+
+func (c *Client) GetTariffGroup(tariffGroupId uuid.UUID) (*TariffGroup, error) {
+	return InvokeEndpoint[TariffGroup](c, http.MethodGet, fmt.Sprintf("/tariff-groups/%s", tariffGroupId), nil, nil)
 }
