@@ -110,6 +110,11 @@ type InstancePricing struct {
 	BillingPeriod BillingPeriod `json:"billingPeriod"`
 }
 
+type ControlPanel struct {
+	URL         string `json:"url"`
+	DisplayName string `json:"displayName"`
+}
+
 // GetPricing получает актуальную информацию о стоимости услуги.
 func (i *Instance) GetPricing(client *Client) (*InstancePricing, error) {
 	return client.GetInstancePricing(i.ID)
@@ -148,4 +153,9 @@ func (c *Client) UnblockInstance(id uuid.UUID) error {
 // GetInstancePricing получает актуальную информацию о стоимости услуги.
 func (c *Client) GetInstancePricing(instanceID uuid.UUID) (*InstancePricing, error) {
 	return InvokeEndpoint[InstancePricing](c, http.MethodGet, fmt.Sprintf("/instances/%s/pricing", instanceID), nil, nil)
+}
+
+// GetInstanceControlPanel получает информацию о доступе ко внешней панели управления услугой.
+func (c *Client) GetInstanceControlPanel(instanceID uuid.UUID) (*ControlPanel, error) {
+	return InvokeEndpoint[ControlPanel](c, http.MethodGet, fmt.Sprintf("/instances/%s/control-panel", instanceID), nil, nil)
 }
