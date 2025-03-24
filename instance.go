@@ -110,6 +110,13 @@ type InstancePricing struct {
 	BillingPeriod BillingPeriod `json:"billingPeriod"`
 }
 
+type InstanceState struct {
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	KindName    string          `json:"kindName"`
+	Options     OptionContainer `json:"options"`
+}
+
 type ControlPanel struct {
 	URL         string `json:"url"`
 	DisplayName string `json:"displayName"`
@@ -118,6 +125,11 @@ type ControlPanel struct {
 // GetPricing получает актуальную информацию о стоимости услуги.
 func (i *Instance) GetPricing(client *Client) (*InstancePricing, error) {
 	return client.GetInstancePricing(i.ID)
+}
+
+// GetState получает актуальную конфигурацию услуги во внешней системе.
+func (i *Instance) GetState(client *Client) (*InstanceState, error) {
+	return client.GetInstanceState(i.ID)
 }
 
 // Block блокирует услугу.
@@ -158,4 +170,9 @@ func (c *Client) GetInstancePricing(instanceID uuid.UUID) (*InstancePricing, err
 // GetInstanceControlPanel получает информацию о доступе ко внешней панели управления услугой.
 func (c *Client) GetInstanceControlPanel(instanceID uuid.UUID) (*ControlPanel, error) {
 	return InvokeEndpoint[ControlPanel](c, http.MethodGet, fmt.Sprintf("/instances/%s/control-panel", instanceID), nil, nil)
+}
+
+// GetInstanceState получает актуальную конфигурацию услуги во внешней системе.
+func (c *Client) GetInstanceState(instanceID uuid.UUID) (*InstanceState, error) {
+	return InvokeEndpoint[InstanceState](c, http.MethodGet, fmt.Sprintf("/instances/%s/state", instanceID), nil, nil)
 }
