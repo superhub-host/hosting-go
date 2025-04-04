@@ -29,6 +29,9 @@ type Instance struct {
 	// Идентификатор пользователя, являющегося владельцем данной услуги.
 	OwnerID uuid.UUID `json:"ownerId"`
 
+	// Идентификатор сервера для технической поддержки.
+	Identifier string `json:"identifier"`
+
 	// Название услуги, предоставленное пользователем.
 	Name string `json:"name"`
 
