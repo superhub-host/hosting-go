@@ -127,22 +127,22 @@ type ControlPanel struct {
 
 // GetPricing получает актуальную информацию о стоимости услуги.
 func (i *Instance) GetPricing(client *Client) (*InstancePricing, error) {
-	return client.GetInstancePricing(i.ID)
+	return client.GetInstancePricing(i.ID.String())
 }
 
 // GetState получает актуальную конфигурацию услуги во внешней системе.
 func (i *Instance) GetState(client *Client) (*InstanceState, error) {
-	return client.GetInstanceState(i.ID)
+	return client.GetInstanceState(i.ID.String())
 }
 
 // Block блокирует услугу.
 func (i *Instance) Block(client *Client) error {
-	return client.BlockInstance(i.ID)
+	return client.BlockInstance(i.ID.String())
 }
 
 // Unblock разблокирует услугу. Вернёт ошибку 409, если услуга не заблокирована.
 func (i *Instance) Unblock(client *Client) error {
-	return client.UnblockInstance(i.ID)
+	return client.UnblockInstance(i.ID.String())
 }
 
 // GetInstances получает список всех услуг, доступных в системе.
@@ -151,31 +151,31 @@ func (c *Client) GetInstances() (*[]Instance, error) {
 }
 
 // GetInstance получает информацию об услуге с данным идентификатором.
-func (c *Client) GetInstance(id uuid.UUID) (*Instance, error) {
+func (c *Client) GetInstance(id string) (*Instance, error) {
 	return InvokeEndpoint[Instance](c, http.MethodGet, fmt.Sprintf("/instances/%s", id), nil, nil)
 }
 
 // BlockInstance блокирует услугу с заданным идентификатором.
-func (c *Client) BlockInstance(id uuid.UUID) error {
+func (c *Client) BlockInstance(id string) error {
 	return InvokeVoidEndpoint(c, http.MethodPost, fmt.Sprintf("/instances/%s/blocking", id), nil, nil)
 }
 
 // UnblockInstance разблокирует услугу с заданным идентификатором. Вернёт ошибку 409, если услуга не заблокирована.
-func (c *Client) UnblockInstance(id uuid.UUID) error {
+func (c *Client) UnblockInstance(id string) error {
 	return InvokeVoidEndpoint(c, http.MethodDelete, fmt.Sprintf("/instances/%s/blocking", id), nil, nil)
 }
 
 // GetInstancePricing получает актуальную информацию о стоимости услуги.
-func (c *Client) GetInstancePricing(instanceID uuid.UUID) (*InstancePricing, error) {
+func (c *Client) GetInstancePricing(instanceID string) (*InstancePricing, error) {
 	return InvokeEndpoint[InstancePricing](c, http.MethodGet, fmt.Sprintf("/instances/%s/pricing", instanceID), nil, nil)
 }
 
 // GetInstanceControlPanel получает информацию о доступе ко внешней панели управления услугой.
-func (c *Client) GetInstanceControlPanel(instanceID uuid.UUID) (*ControlPanel, error) {
+func (c *Client) GetInstanceControlPanel(instanceID string) (*ControlPanel, error) {
 	return InvokeEndpoint[ControlPanel](c, http.MethodGet, fmt.Sprintf("/instances/%s/control-panel", instanceID), nil, nil)
 }
 
 // GetInstanceState получает актуальную конфигурацию услуги во внешней системе.
-func (c *Client) GetInstanceState(instanceID uuid.UUID) (*InstanceState, error) {
+func (c *Client) GetInstanceState(instanceID string) (*InstanceState, error) {
 	return InvokeEndpoint[InstanceState](c, http.MethodGet, fmt.Sprintf("/instances/%s/state", instanceID), nil, nil)
 }
