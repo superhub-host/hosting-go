@@ -125,6 +125,16 @@ type ControlPanel struct {
 	DisplayName string `json:"displayName"`
 }
 
+type UpdateTariffParams struct {
+	TariffID uuid.UUID         `json:"tariffId"`
+	Options  map[string]string `json:"options"`
+}
+
+type TariffParams struct {
+	Tariff  Tariff           `json:"tariff"`
+	Options []InstanceOption `json:"options"`
+}
+
 // GetPricing получает актуальную информацию о стоимости услуги.
 func (i *Instance) GetPricing(client *Client) (*InstancePricing, error) {
 	return client.GetInstancePricing(i.ID.String())
@@ -143,6 +153,11 @@ func (i *Instance) Block(client *Client) error {
 // Unblock разблокирует услугу. Вернёт ошибку 409, если услуга не заблокирована.
 func (i *Instance) Unblock(client *Client) error {
 	return client.UnblockInstance(i.ID.String())
+}
+
+// UpdateTariff изменяет тариф услуги.
+func (i *Instance) UpdateTariff(client *Client, params *UpdateTariffParams) (*TariffParams, error) {
+	return client.UpdateInstanceTariff(i.ID.String(), params)
 }
 
 // GetInstances получает список всех услуг, доступных в системе.
@@ -178,4 +193,9 @@ func (c *Client) GetInstanceControlPanel(instanceID string) (*ControlPanel, erro
 // GetInstanceState получает актуальную конфигурацию услуги во внешней системе.
 func (c *Client) GetInstanceState(instanceID string) (*InstanceState, error) {
 	return InvokeEndpoint[InstanceState](c, http.MethodGet, fmt.Sprintf("/instances/%s/state", instanceID), nil, nil)
+}
+
+// UpdateInstanceTariff изменяет тариф услуги.
+func (c *Client) UpdateInstanceTariff(instanceID string, params *UpdateTariffParams) (*TariffParams, error) {
+	return InvokeEndpoint[TariffParams](c, http.MethodPut, fmt.Sprintf("/instances/%s/tariff", instanceID), nil, params)
 }
