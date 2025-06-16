@@ -66,6 +66,10 @@ func (g *TariffGroup) GetTariffs(client *Client) (*[]Tariff, error) {
 	return client.GetTariffs(g.ID)
 }
 
+func (g *TariffGroup) GetOrderOptions(client *Client) (*[]OrderOption, error) {
+	return client.GetOrderOptions(g.ID)
+}
+
 func (c *Client) GetTariffGroups() (*[]TariffGroup, error) {
 	return InvokeEndpoint[[]TariffGroup](c, http.MethodGet, "/tariff-groups", nil, nil)
 }
@@ -76,4 +80,8 @@ func (c *Client) GetTariffGroup(tariffGroupId uuid.UUID) (*TariffGroup, error) {
 
 func (c *Client) GetTariffs(tariffGroupId uuid.UUID) (*[]Tariff, error) {
 	return InvokeEndpoint[[]Tariff](c, http.MethodGet, fmt.Sprintf("/tariff-groups/%s/tariffs", tariffGroupId), nil, nil)
+}
+
+func (c *Client) GetOrderOptions(tariffGroupId uuid.UUID) (*[]OrderOption, error) {
+	return InvokeEndpoint[[]OrderOption](c, http.MethodGet, fmt.Sprintf("/tariff-groups/%s/order-options", tariffGroupId), nil, nil)
 }
