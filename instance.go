@@ -20,6 +20,14 @@ const (
 	InstanceStatusUserSuspended InstanceStatus = "USER_SUSPENDED"
 )
 
+type BlockingReason string
+
+const (
+	BlockingReasonUnknown      BlockingReason = "UNKNOWN"
+	BlockingReasonUnpaid       BlockingReason = "UNPAID"
+	BlockingReasonTosViolation BlockingReason = "TOS_VIOLATION"
+)
+
 // Instance — конкретный экземпляр предоставленной определённому пользователю услуги. Содержит общее описание услуги,
 // используемое в личном кабинете.
 type Instance struct {
@@ -69,6 +77,12 @@ type Instance struct {
 
 	// Заблокирована ли услуга принудительно?
 	Blocked bool `json:"blocked"`
+
+	// Причина блокировки услуги.
+	BlockingReason BlockingReason `json:"blockingReason"`
+
+	// Может ли услуга быть разморожена?
+	CanBeUnblocked bool `json:"canBeUnblocked"`
 
 	// Время принудительной блокировки услуги. Будет nil, если услуга не заблокирована принудительно.
 	BlockedAt *time.Time `json:"blockedAt"`
@@ -135,6 +149,10 @@ type TariffParams struct {
 	Options []InstanceOption `json:"options"`
 }
 
+type BlockInstanceParams struct {
+	BlockingReason BlockingReason `json:"blockingReason"`
+}
+
 // GetPricing получает актуальную информацию о стоимости услуги.
 func (i *Instance) GetPricing(client *Client) (*InstancePricing, error) {
 	return client.GetInstancePricing(i.ID.String())
@@ -146,8 +164,8 @@ func (i *Instance) GetState(client *Client) (*InstanceState, error) {
 }
 
 // Block блокирует услугу.
-func (i *Instance) Block(client *Client) error {
-	return client.BlockInstance(i.ID.String())
+func (i *Instance) Block(client *Client, params *BlockInstanceParams) error {
+	return client.BlockInstance(i.ID.String(), params)
 }
 
 // Unblock разблокирует услугу. Вернёт ошибку 409, если услуга не заблокирована.
@@ -171,8 +189,8 @@ func (c *Client) GetInstance(id string) (*Instance, error) {
 }
 
 // BlockInstance блокирует услугу с заданным идентификатором.
-func (c *Client) BlockInstance(id string) error {
-	return InvokeVoidEndpoint(c, http.MethodPost, fmt.Sprintf("/instances/%s/blocking", id), nil, nil)
+func (c *Client) BlockInstance(id string, params *BlockInstanceParams) error {
+	return InvokeVoidEndpoint(c, http.MethodPost, fmt.Sprintf("/instances/%s/blocking", id), nil, params)
 }
 
 // UnblockInstance разблокирует услугу с заданным идентификатором. Вернёт ошибку 409, если услуга не заблокирована.
