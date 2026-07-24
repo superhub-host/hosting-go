@@ -184,6 +184,11 @@ func (i *Instance) GetPayments(client *Client, params *PaginationParams) (*[]Pay
 	return client.GetInstancePayments(i.ID.String(), params)
 }
 
+// Delete удаляет услугу без подтверждения.
+func (i *Instance) Delete(client *Client) error {
+	return client.DeleteInstance(i.ID.String())
+}
+
 // GetInstances получает список всех услуг, доступных в системе.
 func (c *Client) GetInstances() (*[]Instance, error) {
 	return InvokeEndpoint[[]Instance](c, http.MethodGet, "/instances", nil, nil)
@@ -202,6 +207,11 @@ func (c *Client) BlockInstance(id string, params *BlockInstanceParams) error {
 // UnblockInstance разблокирует услугу с заданным идентификатором. Вернёт ошибку 409, если услуга не заблокирована.
 func (c *Client) UnblockInstance(id string) error {
 	return InvokeVoidEndpoint(c, http.MethodDelete, fmt.Sprintf("/instances/%s/blocking", id), nil, nil)
+}
+
+// DeleteInstance удаляет услугу без подтверждения.
+func (c *Client) DeleteInstance(id string) error {
+	return InvokeVoidEndpoint(c, http.MethodDelete, fmt.Sprintf("/instances/%s", id), nil, nil)
 }
 
 // GetInstancePricing получает актуальную информацию о стоимости услуги.
