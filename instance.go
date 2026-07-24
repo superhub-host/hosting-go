@@ -3,6 +3,7 @@ package superhub
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/google/uuid"
@@ -178,6 +179,11 @@ func (i *Instance) UpdateTariff(client *Client, params *UpdateTariffParams) (*Ta
 	return client.UpdateInstanceTariff(i.ID.String(), params)
 }
 
+// GetPayments получает платежи, свяазнные с услугой.
+func (i *Instance) GetPayments(client *Client, params *PaginationParams) (*[]Payment, error) {
+	return client.GetInstancePayments(i.ID.String(), params)
+}
+
 // GetInstances получает список всех услуг, доступных в системе.
 func (c *Client) GetInstances() (*[]Instance, error) {
 	return InvokeEndpoint[[]Instance](c, http.MethodGet, "/instances", nil, nil)
@@ -201,6 +207,14 @@ func (c *Client) UnblockInstance(id string) error {
 // GetInstancePricing получает актуальную информацию о стоимости услуги.
 func (c *Client) GetInstancePricing(instanceID string) (*InstancePricing, error) {
 	return InvokeEndpoint[InstancePricing](c, http.MethodGet, fmt.Sprintf("/instances/%s/pricing", instanceID), nil, nil)
+}
+
+// GetInstancePayments получает платежи, свяазнные с услугой.
+func (c *Client) GetInstancePayments(instanceID string, params *PaginationParams) (*[]Payment, error) {
+	query := &url.Values{}
+	params.Encode(query)
+
+	return InvokeEndpoint[[]Payment](c, http.MethodGet, fmt.Sprintf("/instances/%s/payments", instanceID), query, nil)
 }
 
 // GetInstanceControlPanel получает информацию о доступе ко внешней панели управления услугой.
