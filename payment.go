@@ -35,6 +35,15 @@ const (
 	// PaymentSourceDepositBonus — бонус за пополнение баланса.
 	PaymentSourceDepositBonus PaymentSourceType = "DEPOSIT_BONUS"
 
+	// PaymentSourcePersonnelPayout — внутренние выплаты персоналу.
+	PaymentSourcePersonnelPayout PaymentSourceType = "PERSONNEL_PAYOUT"
+
+	// PaymentSourceRefund — возвраты за услуги на баланс и вывод средств с баланса.
+	PaymentSourceRefund PaymentSourceType = "REFUND"
+
+	// PaymentSourcePrizePayout — выплаты призов за участие в событиях хостинга.
+	PaymentSourcePrizePayout PaymentSourceType = "PRIZE_PAYOUT"
+
 	// PaymentSourceReferralWelcomeBonus — приветственный бонус для пользователей, зарегистрированных по приглашению.
 	PaymentSourceReferralWelcomeBonus PaymentSourceType = "REFERRAL_WELCOME_BONUS"
 
