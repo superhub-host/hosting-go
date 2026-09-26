@@ -44,8 +44,6 @@ type Node struct {
 
 	// Доступна ли нода для размещения серверов в принципе?
 	IsAvailable bool `json:"isAvailable"`
-
-	serviceGroupId uuid.UUID
 }
 
 // NodeLocation — информация о физическом расположении ноды.
@@ -143,19 +141,6 @@ type Benchmark struct {
 	Value float64
 }
 
-// NodeLoad является обёрткой для значения нагрузки ноды.
-// Используется только при сериализации и десериализации запросов и ответов.
-type NodeLoad struct {
-	// Нагрузка — число от 0 до 1, показывающее загруженность ноды.
-	// 0 — нет нагрузки, 1 — максимальная нагрузка.
-	Load float64 `json:"load"`
-}
-
-// UpdateLoad обновляет информацию о загруженности ноды.
-func (n *Node) UpdateLoad(client *Client, load *NodeLoad) (*NodeLoad, error) {
-	return client.UpdateNodeLoad(n.serviceGroupId, n.ID, load)
-}
-
 // GetNode получает информацию о ноде с заданным идентификатором.
 func (c *Client) GetNode(serviceGroupId uuid.UUID, nodeId uuid.UUID) (*Node, error) {
 	n, err := InvokeEndpoint[Node](c, http.MethodGet, fmt.Sprintf("/service-groups/%s/nodes/%s", serviceGroupId, nodeId), nil, nil)
@@ -163,7 +148,6 @@ func (c *Client) GetNode(serviceGroupId uuid.UUID, nodeId uuid.UUID) (*Node, err
 		return nil, err
 	}
 
-	n.serviceGroupId = serviceGroupId
 	return n, nil
 }
 
@@ -174,14 +158,5 @@ func (c *Client) GetNodes(serviceGroupId uuid.UUID) (*[]Node, error) {
 		return nil, err
 	}
 
-	for _, n := range *nodes {
-		n.serviceGroupId = serviceGroupId
-	}
-
 	return nodes, nil
-}
-
-// UpdateNodeLoad обновляет информацию о загруженности ноды.
-func (c *Client) UpdateNodeLoad(serviceGroupId uuid.UUID, nodeId uuid.UUID, load *NodeLoad) (*NodeLoad, error) {
-	return InvokeEndpoint[NodeLoad](c, http.MethodPut, fmt.Sprintf("/service-groups/%s/nodes/%s/load", serviceGroupId, nodeId), nil, load)
 }
